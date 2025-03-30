@@ -11,6 +11,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { FormField } from "./FormField"
 import { useRouter } from "next/navigation"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { auth } from "@/firebase/client"
 
 
 const authFormSchema = (type: FormType) => {
@@ -38,9 +40,25 @@ const AuthForm = ({type} : {type: FormType}) => {
     })
     
     
-    function onSubmit() {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
             if(type === 'sign-up') {
+                const { name, email, password } = values;
+
+                const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+
+                const result = await signUp({
+                    uid: userCredentials.user.uid,
+                    name: name!,
+                    email: email,
+                    password: password,
+                })
+
+                if(!result.success) {
+                    toast.error(result.message);
+                    return;
+                }
+
                 toast.success('Account created successfully. Please sign in.');
                 router.push('/sign-in');
             } else {
