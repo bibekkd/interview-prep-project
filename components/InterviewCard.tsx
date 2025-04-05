@@ -4,14 +4,20 @@ import {getRandomInterviewCover} from '@/lib/utils'
 import { Button } from './ui/button';
 import Link from 'next/link';
 import DisplayTechIcons from './DisplayTechIcons';
+import { getFeedbackByInterviewId } from '@/lib/actions/general.action';
+import { getCurrentUser } from '@/lib/actions/auth.action';
 
-export const InterviewCard = ({ role, techstack,
+export const InterviewCard = async ({ role, techstack,
     type, createdAt, id }: InterviewCardProps) => {
-        const feedback = null as Feedback | null;
+        const user = await getCurrentUser();
+        const feedback = await getFeedbackByInterviewId({
+            interviewId: id || '',
+            userId: user!.id
+        })
         const normalizedType = /mix/gi.test(type) ? 'Mixed' : type;
-        const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY');
-    
-        
+        const formattedDate = dayjs(feedback?.createdAt || createdAt || Date.now()).format('MMM D, YYYY, hh:mm A');
+        const totalScore = feedback?.totalScore || '---';
+
         return (
         <div className='card-border w-[360px] max-sm:w-full
         min-h-96'>
@@ -52,7 +58,7 @@ export const InterviewCard = ({ role, techstack,
                                 width={22}
                                 height={22}
                             />
-                            <p>{feedback?.totalScore || '---'}/100</p>
+                            <p>{totalScore || '---'}/100</p>
                         </div>
                     </div>
 
